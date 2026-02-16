@@ -162,7 +162,7 @@ $(work_dir)/liv/verses.csv:
 	mkdir -p $(work_dir)/liv
 	$(python) code/convert_skvr.py -p '' -c liv \
       -d $(work_dir)/liv \
-	  $(raw_dir)/livonian-corpus/*.xml
+	  $(raw_dir)/livonian-corpus/Volkslieder*.xml
 
 $(work_dir)/liv/meta.csv:     $(work_dir)/liv/verses.csv
 $(work_dir)/liv/poems.csv:    $(work_dir)/liv/verses.csv
