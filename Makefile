@@ -4,7 +4,7 @@ DATA_DIR := $(if $(DATA_DIR),$(DATA_DIR),data/output)
 
 python = python3
 
-preprocess: skvr erab jr kr
+preprocess: skvr erab jr kr liv
 
 skvr: \
   $(work_dir)/skvr/collectors.csv \
@@ -29,6 +29,17 @@ kr: \
   $(work_dir)/kr/poem_types.csv \
   $(work_dir)/kr/types.csv \
   $(work_dir)/kr/word_occ.csv
+
+liv: \
+  $(work_dir)/liv/collectors.csv \
+  $(work_dir)/liv/verses.csv \
+  $(work_dir)/liv/places.csv \
+  $(work_dir)/liv/poem_collector.csv \
+  $(work_dir)/liv/poem_year.csv \
+  $(work_dir)/liv/poem_place.csv \
+  $(work_dir)/liv/poem_types.csv \
+  $(work_dir)/liv/types.csv \
+  $(work_dir)/liv/word_occ.csv
 
 ###################################################################
 # PREPROCESSING
@@ -143,6 +154,53 @@ $(work_dir)/kr/types.csv:
 	  && cp $(raw_dir)/kr/kanteletar/categories.csv $@ ) \
 	|| ( echo "type_id,type_name,type_description,type_parent_id" > $@ )
 
+###################################################################
+# LIVONIAN CORPUS
+###################################################################
+
+$(work_dir)/liv/verses.csv:
+	mkdir -p $(work_dir)/liv
+	$(python) code/convert_skvr.py -p '' -c liv \
+      -d $(work_dir)/liv \
+	  $(raw_dir)/livonian-corpus/*.xml
+
+$(work_dir)/liv/meta.csv:     $(work_dir)/liv/verses.csv
+$(work_dir)/liv/poems.csv:    $(work_dir)/liv/verses.csv
+$(work_dir)/liv/raw_meta.csv: $(work_dir)/liv/verses.csv
+
+$(work_dir)/liv/collectors.csv:
+	mkdir -p $(work_dir)/liv
+	( [ -f "$(raw_dir)/livonian-corpus/collectors.csv" ] \
+	  && cp $(raw_dir)/livonian-corpus/collectors.csv $@ ) \
+	|| ( echo "collector_id,collector_name" > $@ )
+
+$(work_dir)/liv/poem_place.csv: $(work_dir)/liv/meta.csv
+	csvcut -c poem_id,place_id $< | csvgrep -c place_id -r '.+' > $@
+
+$(work_dir)/liv/poem_collector.csv: $(work_dir)/liv/meta.csv
+	csvcut -c poem_id,collector_id $< | csvgrep -c collector_id -r '.+' > $@
+
+$(work_dir)/liv/poem_types.csv:
+	mkdir -p $(work_dir)/liv
+	( [ -f "$(raw_dir)/livonian-corpus/poem_category.csv" ] \
+	  && cp $(raw_dir)/livonian-corpus/poem_category.csv $@ ) \
+	|| ( echo "poem_id,type_id,type_is_minor" > $@ )
+
+$(work_dir)/liv/poem_year.csv: $(work_dir)/liv/meta.csv
+	csvcut -c poem_id,year $< | csvgrep -c year -r '.+' > $@
+
+$(work_dir)/liv/places.csv:
+	mkdir -p $(work_dir)/liv
+	( [ -f "$(raw_dir)/livonian-corpus/places.csv" ] \
+	  && cp $(raw_dir)/livonian-corpus/places.csv $@ ) \
+	|| ( echo "place_id,place_name,place_type,place_parent_id" > $@ )
+
+$(work_dir)/liv/types.csv:
+	mkdir -p $(work_dir)/liv
+	( [ -f "$(raw_dir)/livonian-corpus/categories.csv" ] \
+	  && cp $(raw_dir)/livonian-corpus/categories.csv $@ ) \
+	|| ( echo "type_id,type_name,type_description,type_parent_id" > $@ )
+
 # Verse cleaning
 $(work_dir)/%/verses_cl.csv: $(work_dir)/%/verses.csv
 	csvgrep -c verse_type -r "V" $< \
@@ -193,7 +251,8 @@ $(DATA_DIR)/areas.geojson: $(raw_dir)/areas.geojson
 $(DATA_DIR)/collectors.csv: \
   $(work_dir)/skvr/collectors.csv \
   $(work_dir)/erab/collectors.csv \
-  $(work_dir)/kr/collectors.csv
+  $(work_dir)/kr/collectors.csv \
+  $(work_dir)/liv/collectors.csv
 	csvstack $^ > $@
 
 $(DATA_DIR)/counties.geojson: \
@@ -208,21 +267,24 @@ $(DATA_DIR)/counties.geojson: \
 $(DATA_DIR)/places.csv: \
   $(work_dir)/skvr/places.csv \
   $(work_dir)/erab/places.csv \
-  $(work_dir)/kr/places.csv
+  $(work_dir)/kr/places.csv \
+  $(work_dir)/liv/places.csv
 	csvstack $^ > $@
 
 $(DATA_DIR)/poems.csv: \
   $(work_dir)/skvr/poems.csv \
   $(work_dir)/erab/poems.csv \
   $(work_dir)/jr/poems.csv \
-  $(work_dir)/kr/poems.csv
+  $(work_dir)/kr/poems.csv \
+  $(work_dir)/liv/poems.csv
 	csvstack $^ > $@
 
 $(DATA_DIR)/poem_collector.csv: \
   $(work_dir)/skvr/poem_collector.csv \
   $(work_dir)/erab/poem_collector.csv \
   $(work_dir)/jr/poem_collector.csv \
-  $(work_dir)/kr/poem_collector.csv
+  $(work_dir)/kr/poem_collector.csv \
+  $(work_dir)/liv/poem_collector.csv
 	csvstack $^ > $@
 
 $(DATA_DIR)/poem_duplicates.csv: \
@@ -233,20 +295,23 @@ $(DATA_DIR)/poem_place.csv: \
   $(work_dir)/skvr/poem_place.csv \
   $(work_dir)/erab/poem_place.csv \
   $(work_dir)/jr/poem_place.csv \
-  $(work_dir)/kr/poem_place.csv
+  $(work_dir)/kr/poem_place.csv \
+  $(work_dir)/liv/poem_place.csv
 	csvstack $^ > $@
 
 $(DATA_DIR)/poem_types.csv: \
   $(work_dir)/skvr/poem_types.csv \
   $(work_dir)/erab/poem_types.csv \
-  $(work_dir)/kr/poem_types.csv
+  $(work_dir)/kr/poem_types.csv \
+  $(work_dir)/liv/poem_types.csv
 	csvstack $^ > $@
 
 $(DATA_DIR)/poem_year.csv: \
   $(work_dir)/skvr/poem_year.csv \
   $(work_dir)/erab/poem_year.csv \
   $(work_dir)/jr/poem_year.csv \
-  $(work_dir)/kr/poem_year.csv
+  $(work_dir)/kr/poem_year.csv \
+  $(work_dir)/liv/poem_year.csv
 	csvstack $^ > $@
 
 $(DATA_DIR)/polygon_to_place.csv: \
@@ -266,7 +331,8 @@ $(DATA_DIR)/raw_meta.csv: \
   $(work_dir)/skvr/raw_meta.csv \
   $(work_dir)/erab/raw_meta.csv \
   $(work_dir)/jr/raw_meta.csv \
-  $(work_dir)/kr/raw_meta.csv
+  $(work_dir)/kr/raw_meta.csv \
+  $(work_dir)/liv/raw_meta.csv
 	csvstack $^ > $@
 
 $(DATA_DIR)/refs.csv: \
@@ -284,7 +350,8 @@ $(DATA_DIR)/runoregi_pages.tsv: $(raw_dir)/runoregi_pages.json
 $(DATA_DIR)/types.csv: \
   $(work_dir)/skvr/types.csv \
   $(work_dir)/erab/types.csv \
-  $(work_dir)/kr/types.csv
+  $(work_dir)/kr/types.csv \
+  $(work_dir)/liv/types.csv
 	csvstack $^ \
 	| csvcut -c type_id,type_name,type_description,type_parent_id > $@
 	python3 code/add_type_links.py $@ -t 0.7
@@ -293,21 +360,24 @@ $(DATA_DIR)/verses.csv: \
   $(work_dir)/skvr/verses.csv \
   $(work_dir)/erab/verses.csv \
   $(work_dir)/jr/verses.csv \
-  $(work_dir)/kr/verses.csv
+  $(work_dir)/kr/verses.csv \
+  $(work_dir)/liv/verses.csv
 	csvstack $^ > $@
 
 $(DATA_DIR)/verses_cl.csv: \
   $(work_dir)/skvr/verses_cl.csv \
   $(work_dir)/erab/verses_cl.csv \
   $(work_dir)/jr/verses_cl.csv \
-  $(work_dir)/kr/verses_cl.csv
+  $(work_dir)/kr/verses_cl.csv \
+  $(work_dir)/liv/verses_cl.csv
 	csvstack $^ > $@
 
 $(DATA_DIR)/word_occ.csv: \
   $(work_dir)/skvr/word_occ.csv \
   $(work_dir)/erab/word_occ.csv \
   $(work_dir)/jr/word_occ.csv \
-  $(work_dir)/kr/word_occ.csv
+  $(work_dir)/kr/word_occ.csv \
+  $(work_dir)/liv/word_occ.csv
 	csvstack $^ > $@
 
 ###################################################################
