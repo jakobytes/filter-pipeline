@@ -1,2 +1,4 @@
 code/__pycache__
 data/work
+csvs
+.DS_Store
