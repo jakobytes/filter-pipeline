@@ -12,4 +12,4 @@
 	url = https://github.com/sks190/kr_FILTER
 [submodule "data/raw/livonian-corpus"]
 	path = data/raw/livonian-corpus
-	url = git@github.com:jakobytes/livonian-corpus
+	url = git@github.com:jakobytes/livonian-corpus.git
