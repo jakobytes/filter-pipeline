@@ -10,3 +10,6 @@
 [submodule "data/raw/kr"]
 	path = data/raw/kr
 	url = https://github.com/sks190/kr_FILTER
+[submodule "data/raw/vldl"]
+	path = data/raw/vldl
+	url = git@github.com:jakobytes/livonian-corpus.git
