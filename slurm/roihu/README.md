@@ -15,9 +15,11 @@ environment files in this directory, each on the login node of the
 matching architecture:
 
 ```
-# on roihu-gpu.csc.fi
+# on roihu-gpu.csc.fi (the login node has no GPU, so the CUDA version
+# needs to be given for conda to install the CUDA build of PyTorch)
 module load tykky
-conda-containerize new --prefix /projappl/<project>/filter-gpu-env env-gpu.yml
+CONDA_OVERRIDE_CUDA=12.9 \
+  conda-containerize new --prefix /projappl/<project>/filter-gpu-env env-gpu.yml
 
 # on roihu-cpu.csc.fi
 module load tykky
