@@ -1,0 +1,17 @@
+#!/bin/bash
+#SBATCH --job-name=filter-poem-clust
+#SBATCH --partition=small
+#SBATCH --time=04:00:00
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=2
+#SBATCH --mem=64G
+#SBATCH --output=logs/%x-%j.out
+
+source slurm/roihu/env.sh
+
+# Concatenates the parts computed by poem_sim.sbatch and clusters the poems.
+make "${MAKE_VARS[@]}" \
+  -o "$FILTER_SCRATCH/output/verses_cl.csv" \
+  -o "$FILTER_SCRATCH/work/verses_cl_by_length.csv" \
+  "$FILTER_SCRATCH/output/p_sim.csv" \
+  "$FILTER_SCRATCH/output/p_clust.tsv"

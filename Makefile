@@ -4,6 +4,16 @@ DATA_DIR := $(if $(DATA_DIR),$(DATA_DIR),data/output)
 
 python = python3
 
+# Fail a recipe if any command in a pipeline fails, and delete half-written
+# targets on error (e.g. when a Slurm job hits its time limit).
+SHELL := /bin/bash
+.SHELLFLAGS := -eo pipefail -c
+.DELETE_ON_ERROR:
+
+# Number of parts the poem similarity computation is split into
+# (e.g. one per GPU in a Slurm array job, see slurm/roihu).
+POEM_SIM_JOBS ?= 1
+
 preprocess: skvr erab jr kr
 
 skvr: \
@@ -402,10 +412,24 @@ $(DATA_DIR)/v_clusterings.csv:
 $(work_dir)/verses_cl_by_length.csv: $(DATA_DIR)/verses_cl.csv
 	$(python) code/sort_poems_by_length.py < $< > $@
 
-$(DATA_DIR)/p_sim.csv: $(work_dir)/verses_cl_by_length.csv
+# The computation is split into $(POEM_SIM_JOBS) parts, which can be
+# computed independently (e.g. in parallel on several GPUs) and are then
+# concatenated. The parts are stored in a directory named after the number
+# of parts, so that parts from runs with different splits are never mixed.
+p_sim_parts_dir = $(work_dir)/p_sim/$(POEM_SIM_JOBS)
+p_sim_parts = $(foreach i,$(shell seq 0 $$(($(POEM_SIM_JOBS)-1))),\
+                $(p_sim_parts_dir)/part_$(i).csv)
+
+$(p_sim_parts_dir)/part_%.csv: $(work_dir)/verses_cl_by_length.csv
+	mkdir -p $(p_sim_parts_dir)
 	$(python) code/poem_sim.py -t 0.5 -p -r -g -d 450 -i $< -o $@ \
+	  -j $* -J $(POEM_SIM_JOBS) \
 	  --sim-raw-thr 1 --sim-onesided-thr 0.1 --sim-sym-thr 0 \
-	  -L DEBUG --logfile $(work_dir)/poem_sim.log
+	  -L DEBUG --logfile $(p_sim_parts_dir)/part_$*.log
+
+$(DATA_DIR)/p_sim.csv: $(p_sim_parts)
+	head -n 1 $< > $@
+	for f in $^; do tail -n +2 $$f; done >> $@
 
 $(DATA_DIR)/p_clust.tsv: $(DATA_DIR)/p_sim.csv
 	csvcut -c poem_id_1,poem_id_2,sim $< \

@@ -312,6 +312,7 @@ if __name__ == '__main__':
 
     except Exception as e:
         logging.critical(str(e))
+        raise
     finally:
         if alfp:
             alfp.close()
