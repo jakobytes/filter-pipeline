@@ -12,7 +12,5 @@
 
 source slurm/roihu/env.sh
 
-make "${MAKE_VARS[@]}" \
-  -o "$FILTER_SCRATCH/output/verses_cl.csv" \
-  -o "$FILTER_SCRATCH/work/verses_cl_by_length.csv" \
-  "$FILTER_SCRATCH/work/p_sim/$POEM_SIM_JOBS/part_$SLURM_ARRAY_TASK_ID.csv"
+make "${MAKE_VARS[@]}" "${KEEP_INPUTS[@]}" \
+  ${SIM}p_sim_part_$SLURM_ARRAY_TASK_ID

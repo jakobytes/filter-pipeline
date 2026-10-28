@@ -10,8 +10,4 @@
 source slurm/roihu/env.sh
 
 # Concatenates the parts computed by poem_sim.sbatch and clusters the poems.
-make "${MAKE_VARS[@]}" \
-  -o "$FILTER_SCRATCH/output/verses_cl.csv" \
-  -o "$FILTER_SCRATCH/work/verses_cl_by_length.csv" \
-  "$FILTER_SCRATCH/output/p_sim.csv" \
-  "$FILTER_SCRATCH/output/p_clust.tsv"
+make "${MAKE_VARS[@]}" "${KEEP_INPUTS[@]}" ${SIM}poem_clust

@@ -26,4 +26,18 @@ MAKE_VARS=(
 )
 mkdir -p "$FILTER_SCRATCH/work" "$FILTER_SCRATCH/output"
 
+# With EMB_MODEL set, the similarity jobs compute the embedding-based
+# tables (the emb_* targets in the Makefile) instead of the n-gram ones.
+SIM=
+if [ -n "$EMB_MODEL" ]; then
+  MAKE_VARS+=(EMB_MODEL="$EMB_MODEL")
+  SIM=emb_
+fi
+
+# Inputs produced by preprocess.sbatch, never to be remade by later jobs.
+KEEP_INPUTS=(
+  -o "$FILTER_SCRATCH/output/verses_cl.csv"
+  -o "$FILTER_SCRATCH/work/verses_cl_by_length.csv"
+)
+
 cd "$SLURM_SUBMIT_DIR"

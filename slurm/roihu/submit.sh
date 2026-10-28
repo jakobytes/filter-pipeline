@@ -4,8 +4,12 @@
 #   preprocess (CPU) -+-> verse_sim (GPU) ---------> verse_clust (CPU)
 #                     +-> poem_sim (GPU array) ----> poem_clust (CPU)
 #
+# With EMB_MODEL set, the similarities are computed from the verse
+# embeddings of that model instead of character n-grams, preceded by
+# an emb_vectors (CPU) job that prepares the embeddings.
+#
 # Usage (on either Roihu login node):
-#   slurm/roihu/submit.sh project_XXXXXXX [--skip-preprocess]
+#   [EMB_MODEL=...] slurm/roihu/submit.sh project_XXXXXXX [--skip-preprocess]
 #
 # The number of poem_sim parts (= GPUs) is set by POEM_SIM_JOBS (default 4).
 
@@ -24,6 +28,12 @@ if [ "$2" != "--skip-preprocess" ]; then
   pre=$(sb slurm/roihu/preprocess.sbatch)
   dep=(--dependency=afterok:$pre)
   echo "preprocess:  $pre"
+fi
+
+if [ -n "$EMB_MODEL" ]; then
+  ev=$(sb "${dep[@]}" slurm/roihu/emb_vectors.sbatch)
+  dep=(--dependency=afterok:$ev)
+  echo "emb_vectors: $ev ($EMB_MODEL)"
 fi
 
 vs=$(sb "${dep[@]}" slurm/roihu/verse_sim.sbatch)

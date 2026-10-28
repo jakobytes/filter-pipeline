@@ -55,6 +55,27 @@ POEM_SIM_JOBS=8 slurm/roihu/submit.sh project_XXXXXXX
 Use `--skip-preprocess` as the second argument to rerun only the
 similarity jobs on existing preprocessed data.
 
+### Embedding-based similarities
+
+Setting `EMB_MODEL` computes the similarity and clustering tables from
+precomputed verse embeddings
+(<https://a3s.fi/filter-data/index.html>) instead of character n-grams:
+
+```
+EMB_MODEL=filter_p4_vb_v45_w45_m10_iso \
+  slurm/roihu/submit.sh project_XXXXXXX --skip-preprocess
+```
+
+`EMB_MODEL` is the name of an embeddings file without the
+`verse_embeddings_` prefix and `.parquet` suffix. An extra CPU job
+downloads it and aligns it with the verses of the pipeline. The resulting
+tables have the same names and formats as the n-gram ones, and are
+written to `output/emb/<EMB_MODEL>/`. As there are no n-gram weightings,
+`v_clust.tsv` only contains the clusterings 0 (default), 3 (tight)
+and 4 (loose).
+
+### Output
+
 The intermediate and output files are written to
 `/scratch/<project>/filter-pipeline/{work,output}` (can be changed by
 setting `FILTER_SCRATCH`). The job logs are in `logs/`.
